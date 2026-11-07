@@ -1,116 +1,139 @@
 <?php
 include 'conexao.php';
 
-$filtro_data = "";
-// Consulta SQL base que junta as 3 tabelas necessárias
-$sql = "SELECT f.data_frete, t.nome_empresa, 
-               origem.cidade AS cidade_origem, origem.estado AS estado_origem,
-               destino.cidade AS cidade_destino, destino.estado AS estado_destino,
-               f.custo_total
-        FROM fretes f
-        JOIN transportadoras t ON f.transportadora_id = t.id
-        JOIN enderecos origem ON f.origem_id = origem.id
-        JOIN enderecos destino ON f.destino_id = destino.id";
+$data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
+$data_fim = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
 
-// Se o utilizador pesquisou por uma data, adiciona o filtro WHERE
-if (isset($_GET['data_filtro']) && !empty($_GET['data_filtro'])) {
-    $filtro_data = $_GET['data_filtro'];
-    $sql .= " WHERE f.data_frete = '$filtro_data'";
+$filtro_sql = "";
+if (!empty($data_inicio) && !empty($data_fim)) {
+    $filtro_sql = " WHERE f.data_frete BETWEEN '" . $data_inicio . "' AND '" . $data_fim . "'";
 }
 
-$sql .= " ORDER BY f.data_frete DESC";
+// QUERY ATUALIZADA COM ORIGEM, DESTINO, TRANSPORTADORA E VALOR (custo_total)
+$sql = "SELECT f.id, f.data_frete, f.custo_total, t.nome_empresa, 
+               e_origem.rua as rua_origem, e_origem.cidade as cidade_origem,
+               e_destino.rua as rua_destino, e_destino.cidade as cidade_destino
+        FROM fretes f 
+        LEFT JOIN transportadoras t ON f.transportadora_id = t.id 
+        LEFT JOIN enderecos e_origem ON f.origem_id = e_origem.id
+        LEFT JOIN enderecos e_destino ON f.destino_id = e_destino.id 
+        " . $filtro_sql . " ORDER BY f.id DESC";
+
 $resultado = $conn->query($sql);
 ?>
-
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatórios de Fretes</title>
+    <title>Relatórios - Gestor Logístico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar-custom { background-color: #343a40; }
-        .btn-custom { background-color: #5b58ff; color: white; border: none; }
-        .btn-custom:hover { background-color: #4a47e6; color: white; }
-        /* Esconde elementos indesejados na hora de imprimir/guardar PDF */
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        .navbar-custom { background-color: #3b3f45; }
+        .navbar-custom .nav-link { color: #a9a9a9; padding: 8px 16px; margin: 0 4px; }
+        .navbar-custom .nav-link:hover { color: #ffffff; }
+        .navbar-custom .nav-link.active { color: #ffffff; font-weight: 500; background-color: #555960; border-radius: 4px; }
+        
         @media print {
             .no-print { display: none !important; }
-            body { background-color: white; }
-            .container { box-shadow: none; max-width: 100%; }
+            body { background-color: #ffffff; }
+            .shadow-sm { box-shadow: none !important; }
+            .border { border: none !important; }
         }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom no-print">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-3 mb-4 no-print">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">Gestor Logístico</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="index.php">Inicio</a></li>
                     <li class="nav-item"><a class="nav-link" href="cadastro_produto.php">Produtos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="cadastro_transportadora.php">Transportadoras</a></li>
                     <li class="nav-item"><a class="nav-link" href="cadastro_endereco.php">Endereços</a></li>
-                    <li class="nav-item"><a class="nav-link" href="gerar_frete.php">Fretes</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="relatorio.php">Relatórios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="cadastro_transportadora.php">Transportadoras</a></li>
+                    <li class="nav-item"><a class="nav-link" href="gerar_frete.php">Frete</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="relatorio.php">Relatorios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="editar_geral.php">Central de Edição</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-5 bg-white p-4 shadow-sm rounded">
-        <h2 class="mb-4 fw-bold text-center">Relatório Diário de Fretes</h2>
+    <div class="container-fluid px-4">
+        <h2 class="text-center mb-4 fw-bold">Relatório de Fretes Gerados</h2>
 
-        <!-- Formulário de Filtro de Data -->
-        <form method="GET" action="relatorio.php" class="row g-3 mb-4 no-print">
-            <div class="col-auto">
-                <label for="data_filtro" class="visually-hidden">Filtrar por Data</label>
-                <input type="date" class="form-control" id="data_filtro" name="data_filtro" value="<?= $filtro_data ?>">
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-secondary">Pesquisar</button>
-                <a href="relatorio.php" class="btn btn-outline-danger">Limpar</a>
-            </div>
-        </form>
+        <div class="card p-4 mb-4 no-print shadow-sm border-0 bg-white rounded mx-auto" style="max-width: 900px;">
+            <form method="GET" action="relatorio.php" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold text-muted">Data Início</label>
+                    <input type="date" class="form-control" name="data_inicio" value="<?= $data_inicio ?>" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold text-muted">Data Fim</label>
+                    <input type="date" class="form-control" name="data_fim" value="<?= $data_fim ?>" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">🔍 Filtrar Relatório</button>
+                </div>
+            </form>
+        </div>
 
-        <!-- Tabela de Resultados -->
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-light">
+        <div class="table-responsive shadow-sm bg-white p-3 rounded border-0">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-dark">
                     <tr>
+                        <th>Nº Frete</th>
                         <th>Data</th>
                         <th>Transportadora</th>
                         <th>Origem</th>
                         <th>Destino</th>
-                        <th>Custo Total</th>
+                        <th>Valor (R$)</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if ($resultado->num_rows > 0): ?>
-                        <?php while($linha = $resultado->fetch_assoc()): ?>
-                            <tr>
-                                <!-- Formata a data para o padrão dd/mm/aaaa -->
-                                <td><?= date("d/m/Y", strtotime($linha['data_frete'])) ?></td>
-                                <td><?= $linha['nome_empresa'] ?></td>
-                                <td><?= $linha['cidade_origem'] . "/" . $linha['estado_origem'] ?></td>
-                                <td><?= $linha['cidade_destino'] . "/" . $linha['estado_destino'] ?></td>
-                                <td>R$ <?= number_format($linha['custo_total'], 2, ',', '.') ?></td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">Nenhum frete encontrado para esta data.</td>
-                        </tr>
-                    <?php endif; ?>
+                    <?php
+                    if (isset($resultado) && $resultado !== false && $resultado->num_rows > 0) {
+                        while($row = $resultado->fetch_assoc()) {
+                            $data_formatada = isset($row['data_frete']) ? date("d/m/Y", strtotime($row['data_frete'])) : '-';
+                            $nome_transp = isset($row['nome_empresa']) ? $row['nome_empresa'] : 'Sem Registro';
+                            
+                            $origem_completa = isset($row['rua_origem']) ? $row['rua_origem'] . " - " . $row['cidade_origem'] : 'Sem Registro';
+                            $destino_completo = isset($row['rua_destino']) ? $row['rua_destino'] . " - " . $row['cidade_destino'] : 'Sem Registro';
+                            
+                            $valor_formatado = isset($row['custo_total']) ? "R$ " . number_format($row['custo_total'], 2, ',', '.') : 'R$ 0,00';
+                            
+                            echo "<tr>";
+                            echo "<td class='fw-bold'>#00" . $row['id'] . "</td>";
+                            echo "<td>" . $data_formatada . "</td>";
+                            echo "<td>" . $nome_transp . "</td>";
+                            echo "<td>" . $origem_completa . "</td>";
+                            echo "<td>" . $destino_completo . "</td>";
+                            echo "<td class='fw-bold text-success'>" . $valor_formatado . "</td>";
+                            echo "<td><span class='badge bg-success'>Concluído</span></td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='7' class='text-center text-muted py-4'>Nenhum frete encontrado.</td></tr>";
+                    }
+                    ?>
                 </tbody>
             </table>
         </div>
 
         <div class="text-end mt-4 no-print">
-            <button onclick="window.print()" class="btn btn-custom px-4 py-2">Descarregar Relatório</button>
+            <button onclick="window.print()" class="btn btn-danger btn-lg fw-bold shadow">
+                🖨️ Imprimir em PDF
+            </button>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

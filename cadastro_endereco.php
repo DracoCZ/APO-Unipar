@@ -30,38 +30,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Endereço</title>
+    <title>Cadastro de Endereço - Gestor Logístico</title>
+    <!-- Importação do Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar-custom { background-color: #343a40; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* NAVBAR PADRONIZADA */
+        .navbar-custom { background-color: #3b3f45; }
+        .navbar-custom .nav-link { color: #a9a9a9; padding: 8px 16px; margin: 0 4px; }
+        .navbar-custom .nav-link:hover { color: #ffffff; }
+        .navbar-custom .nav-link.active { color: #ffffff; font-weight: 500; background-color: #555960; border-radius: 4px; }
+        
         .btn-custom { background-color: #5b58ff; color: white; border: none; }
         .btn-custom:hover { background-color: #4a47e6; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- Barra de Navegação -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+    <!-- BARRA DE NAVEGAÇÃO PADRONIZADA -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-3 mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">Gestor Logístico</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="index.php">Inicio</a></li>
                     <li class="nav-item"><a class="nav-link" href="cadastro_produto.php">Produtos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="cadastro_transportadora.php">Transportadoras</a></li>
                     <li class="nav-item"><a class="nav-link active" href="cadastro_endereco.php">Endereços</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Fretes</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Relatórios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="cadastro_transportadora.php">Transportadoras</a></li>
+                    <li class="nav-item"><a class="nav-link" href="gerar_frete.php">Frete</a></li>
+                    <li class="nav-item"><a class="nav-link" href="relatorio.php">Relatorios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="editar_geral.php">Central de Edição</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <!-- Contentor do Formulário -->
-    <div class="container mt-5" style="max-width: 600px;">
+    <div class="container mt-4 mb-5" style="max-width: 600px;">
         <h2 class="text-center mb-4 fw-bold">Registrar Novo Endereço</h2>
         
-        <div class="card shadow-sm">
+        <div class="card shadow-sm border-0 rounded">
             <div class="card-body p-4">
                 <form method="POST" action="cadastro_endereco.php">
                     <div class="row">
@@ -103,10 +114,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
         
-        <!-- Mostra a mensagem de sucesso ou erro aqui -->
+        <!-- Mostra a mensagem de sucesso ou erro -->
         <?= $mensagem ?>
         
     </div>
 
+    <!-- JS do Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
