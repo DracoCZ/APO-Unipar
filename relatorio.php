@@ -1,6 +1,20 @@
 <?php
 include 'conexao.php';
 
+// Processa a exclusão se a ação de deletar for acionada
+if (isset($_GET['acao']) && $_GET['acao'] === 'deletar' && isset($_GET['id'])) {
+    $id_deletar = intval($_GET['id']);
+    
+    // Apaga primeiro as referências dos produtos associados a este frete
+    $conn->query("DELETE FROM frete_produtos WHERE frete_id = $id_deletar");
+    
+    // Apaga o registro do frete
+    $conn->query("DELETE FROM fretes WHERE id = $id_deletar");
+    
+    header("Location: relatorio.php");
+    exit();
+}
+
 $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
 $data_fim = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
 
@@ -9,7 +23,7 @@ if (!empty($data_inicio) && !empty($data_fim)) {
     $filtro_sql = " WHERE f.data_frete BETWEEN '" . $data_inicio . "' AND '" . $data_fim . "'";
 }
 
-// QUERY ATUALIZADA COM ORIGEM, DESTINO, TRANSPORTADORA E VALOR (custo_total)
+// QUERY COM ORIGEM, DESTINO, TRANSPORTADORA E VALOR (custo_total)
 $sql = "SELECT f.id, f.data_frete, f.custo_total, t.nome_empresa, 
                e_origem.rua as rua_origem, e_origem.cidade as cidade_origem,
                e_destino.rua as rua_destino, e_destino.cidade as cidade_destino
@@ -72,11 +86,11 @@ $resultado = $conn->query($sql);
             <form method="GET" action="relatorio.php" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label fw-bold text-muted">Data Início</label>
-                    <input type="date" class="form-control" name="data_inicio" value="<?= $data_inicio ?>" required>
+                    <input type="date" class="form-control" name="data_inicio" value="<?= $data_inicio ?>">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold text-muted">Data Fim</label>
-                    <input type="date" class="form-control" name="data_fim" value="<?= $data_fim ?>" required>
+                    <input type="date" class="form-control" name="data_fim" value="<?= $data_fim ?>">
                 </div>
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-primary w-100 fw-bold">🔍 Filtrar Relatório</button>
@@ -94,7 +108,7 @@ $resultado = $conn->query($sql);
                         <th>Origem</th>
                         <th>Destino</th>
                         <th>Valor (R$)</th>
-                        <th>Ações</th>
+                        <th class="text-center">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -116,7 +130,15 @@ $resultado = $conn->query($sql);
                             echo "<td>" . $origem_completa . "</td>";
                             echo "<td>" . $destino_completo . "</td>";
                             echo "<td class='fw-bold text-success'>" . $valor_formatado . "</td>";
-                            echo "<td><span class='badge bg-success'>Concluído</span></td>";
+                            echo "<td class='text-center'>
+                                    <button class='btn btn-sm btn-outline-primary no-print me-1' onclick='carregarItens(" . $row['id'] . ")'>
+                                        📦 Ver Itens
+                                    </button>
+                                    <a href='relatorio.php?acao=deletar&id=" . $row['id'] . "' class='btn btn-sm btn-outline-danger no-print me-1' onclick=\"return confirm('Tem certeza que deseja excluir o Frete #00" . $row['id'] . "?');\">
+                                        🗑️ Eliminar
+                                    </a>
+                                    <span class='badge bg-success'>Concluído</span>
+                                  </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -134,6 +156,39 @@ $resultado = $conn->query($sql);
         </div>
     </div>
 
+    <!-- MODAL BOOTSTRAP PARA DETALHES DOS ITENS -->
+    <div class="modal fade no-print" id="modalItens" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="modalTitulo">Produtos do Frete</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="modalConteudo">
+                    <div class="text-center text-muted py-3">Carregando itens...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function carregarItens(freteId) {
+            document.getElementById('modalTitulo').innerText = 'Produtos do Frete #00' + freteId;
+            document.getElementById('modalConteudo').innerHTML = '<div class="text-center text-muted py-3">Carregando itens...</div>';
+            
+            var modal = new bootstrap.Modal(document.getElementById('modalItens'));
+            modal.show();
+
+            fetch('buscar_itens_frete.php?id=' + freteId)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('modalConteudo').innerHTML = html;
+                })
+                .catch(err => {
+                    document.getElementById('modalConteudo').innerHTML = '<div class="alert alert-danger mb-0">Erro ao carregar os itens.</div>';
+                });
+        }
+    </script>
 </body>
 </html>

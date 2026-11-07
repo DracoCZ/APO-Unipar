@@ -1,26 +1,27 @@
 # Sistema de Gestão Logística - UNIPAR EAD
 
-Este é um projeto prático desenvolvido para a disciplina de Fundamentos de Programação para Internet do curso de Análise e Desenvolvimento de Sistemas (UNIPAR EAD).
+Este é um projeto prático desenvolvido para a disciplina da UNIPAR EAD no curso de Análise e Desenvolvimento de Sistemas.
 
 ## 🎯 Objetivo do Projeto
-Criar um gerenciador logístico web utilizando arquitetura Full-Stack, permitindo o cadastro de produtos, endereços, transportadoras e a geração de fretes com múltiplos produtos associados.
+Criar um gerenciador logístico web utilizando arquitetura Full-Stack, permitindo o cadastro e gestão de produtos, endereços, transportadoras e a geração de fretes com múltiplos produtos associados, além do acompanhamento detalhado via relatórios.
 
 ## 🛠️ Tecnologias Utilizadas
-* **Front-end:** HTML5, CSS3, Bootstrap 5, JavaScript (para campos dinâmicos)
-* **Back-end:** PHP
-* **Banco de Dados:** MySQL (via XAMPP)
-* **Design (UX/UI):** Protótipos criados no Figma
+- **Front-end:** HTML5, CSS3, Bootstrap 5, JavaScript (AJAX para requisições dinâmicas)
+- **Back-end:** PHP
+- **Banco de Dados:** MySQL (via XAMPP / phpMyAdmin)
+- **Design (UX/UI):** Protótipos e componentes vetorizados no Figma
 
 ## ⚙️ Funcionalidades
-- [x] Cadastro e Edição de Produtos
-- [x] Cadastro e Edição de Transportadoras
-- [x] Cadastro e Edição de Endereços
-- [x] Geração de Frete (Relação 1 para N utilizando JavaScript)
-- [x] Geração de Relatório de Fretes com filtro de data
-- [x] Impressão de Relatório em PDF
+- [x] Cadastro de Produtos, Transportadoras e Endereços
+- [x] Central de Edição para atualização de registros cadastrados
+- [x] Geração de Fretes dinâmicos (Relação 1 para N com múltiplos produtos)
+- [x] Relatório de Fretes Gerados com filtro por intervalo de datas
+- [x] Visualização detalhada de produtos vinculados ao frete via janela modal (AJAX)
+- [x] Exclusão direta de fretes com remoção em cascata no banco de dados
+- [x] Exportação e Impressão de Relatórios formatados em PDF
 
 ## 🚀 Como executar o projeto
-1. Instale o [XAMPP](https://www.apachefriends.org/pt_br/index.html).
-2. Clone este repositório para dentro da pasta `C:\xampp\htdocs\logistica`.
-3. Importe o banco de dados `logistica_unipar.sql` no phpMyAdmin.
+1. Certifique-se de ter o [XAMPP](https://www.apachefriends.org/pt_br/index.html) instalado e com os serviços **Apache** e **MySQL** ativos.
+2. Clone ou extraia este repositório na pasta `C:\xampp\htdocs\logistica`.
+3. Abra o **phpMyAdmin** (`http://localhost/phpmyadmin`) e importe o banco de dados `logistica_unipar.sql`.
 4. Acesse `http://localhost/logistica` no seu navegador.
